@@ -30,9 +30,11 @@ class DBClient {
     console.log('GET USER IN DB.JS', user);
     return user;
   }
+
   async nbFiles() {
     return this.db.collection('files').countDocuments();
   }
 }
+
 const dbClient = new DBClient();
 export default dbClient;

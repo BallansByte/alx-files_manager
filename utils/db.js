@@ -1,40 +1,39 @@
-import { MongoClient } from 'mongodb';
+// utils/db.js
+const { MongoClient } = require('mongodb');
 
-const host = process.env.DB_HOST || 'localhost';
-const port = process.env.DB_PORT || 27017;
-const database = process.env.DB_DATABASE || 'files_manager';
-const url = `mongodb://${host}:${port}/`;
+const url = 'mongodb://localhost:27017';
+const dbName = 'myDatabase';
 
-class DBClient {
-  constructor() {
-    this.db = null;
-    MongoClient.connect(url, { useUnifiedTopology: true }, (error, client) => {
-      if (error) console.log(error);
-      this.db = client.db(database);
-      this.db.createCollection('users');
-      this.db.createCollection('files');
-    });
+class DBUtils {
+  static async isAlive() {
+    try {
+      const client = new MongoClient(url, { useUnifiedTopology: true });
+      await client.connect();
+      const db = client.db(dbName);
+      await db.admin().ping();
+      return true;
+    } catch (err) {
+      return false;
+    }
   }
 
-  isAlive() {
-    return !!this.db;
+  static async getNumberOfUsers() {
+    const client = new MongoClient(url, { useUnifiedTopology: true });
+    await client.connect();
+    const db = client.db(dbName);
+    const count = await db.collection('users').countDocuments();
+    await client.close();
+    return count;
   }
 
-  async nbUsers() {
-    return this.db.collection('users').countDocuments();
-  }
-
-  async getUser(query) {
-    console.log('QUERY IN DB.JS', query);
-    const user = await this.db.collection('users').findOne(query);
-    console.log('GET USER IN DB.JS', user);
-    return user;
-  }
-
-  async nbFiles() {
-    return this.db.collection('files').countDocuments();
+  static async getNumberOfFiles() {
+    const client = new MongoClient(url, { useUnifiedTopology: true });
+    await client.connect();
+    const db = client.db(dbName);
+    const count = await db.collection('files').countDocuments();
+    await client.close();
+    return count;
   }
 }
 
-const dbClient = new DBClient();
-export default dbClient;
+module.exports = DBUtils;
